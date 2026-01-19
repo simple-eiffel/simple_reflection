@@ -42,6 +42,9 @@ feature -- Field Access
 			if attached type_info.field_by_name (a_name) as l_field then
 				Result := l_field.value (target)
 			end
+		ensure
+			consistent_with_field: attached type_info.field_by_name (a_name) as l_f implies
+				Result = l_f.value (target)
 		end
 
 	set_field_value (a_name: READABLE_STRING_GENERAL; a_value: detachable ANY)
@@ -52,6 +55,11 @@ feature -- Field Access
 			if attached type_info.field_by_name (a_name) as l_field then
 				l_field.set_value (target, a_value)
 			end
+		ensure
+			value_set: field_value (a_name) = a_value or else
+				(attached {READABLE_STRING_GENERAL} a_value as l_str and then
+				 attached {READABLE_STRING_GENERAL} field_value (a_name) as l_result and then
+				 l_result.same_string (l_str))
 		end
 
 feature -- Iteration

@@ -69,6 +69,8 @@ feature -- Access
 
 	type_info_by_name (a_name: READABLE_STRING_GENERAL): detachable SIMPLE_TYPE_INFO
 			-- Type info for type named `a_name`, or Void if not found in cache.
+		require
+			name_not_empty: not a_name.is_empty
 		local
 			l_cursor: INTEGER
 			l_keys: ARRAY [INTEGER]
@@ -86,6 +88,8 @@ feature -- Access
 				end
 				l_cursor := l_cursor + 1
 			end
+		ensure
+			found_implies_name_matches: attached Result implies Result.name.same_string_general (a_name)
 		end
 
 feature -- Status Query

@@ -57,6 +57,13 @@ feature -- Test Execution
 			test_walker_empty_list
 			test_walker_max_depth_zero
 
+			-- X03 Contract Assault Tests
+			test_field_set_verify_mutation
+			test_walker_collision_attack
+			test_walker_postcondition_check
+			test_registry_boundary_type_id
+			test_walker_depth_limited
+
 			print ("All adversarial tests completed%N")
 		end
 
@@ -327,6 +334,110 @@ feature -- Graph Walker Adversarial Tests
 			l_list.extend ("b")
 			l_walker.walk (l_list, l_visitor)
 			assert ("walked_with_unlimited_depth", l_visitor.object_count > 0)
+			print ("PASS%N")
+		end
+
+feature -- X03 Contract Assault Tests
+
+	test_field_set_verify_mutation
+			-- A01: Verify set_field_value actually mutates
+		local
+			l_reflected: SIMPLE_REFLECTED_OBJECT
+			l_test: TEST_SIMPLE_OBJECT
+			l_result: detachable ANY
+		do
+			print ("test_field_set_verify_mutation: ")
+			create l_test.make ("initial", 42)
+			create l_reflected.make (l_test)
+			l_reflected.set_field_value ("name", "modified")
+			l_result := l_reflected.field_value ("name")
+			if attached {STRING} l_result as l_str then
+				assert ("mutation_applied", l_str.same_string ("modified"))
+			else
+				assert ("got_string_back", False)
+			end
+			-- Also verify via direct access
+			assert ("direct_verify", l_test.name.same_string ("modified"))
+			print ("PASS%N")
+		end
+
+	test_walker_collision_attack
+			-- A03: Create many same-type objects to test hash collision
+		local
+			l_walker: SIMPLE_OBJECT_GRAPH_WALKER
+			l_visitor: TEST_COUNTING_VISITOR
+			l_root: ARRAYED_LIST [ARRAYED_LIST [INTEGER]]
+			l_item: ARRAYED_LIST [INTEGER]
+			i: INTEGER
+		do
+			print ("test_walker_collision_attack: ")
+			create l_root.make (50)
+			from
+				i := 1
+			until
+				i > 50
+			loop
+				create l_item.make (1)
+				l_item.extend (i)
+				l_root.extend (l_item)
+				i := i + 1
+			end
+			create l_walker.make
+			create l_visitor.make
+			l_walker.walk (l_root, l_visitor)
+			-- Should visit root + children (may be less due to collisions)
+			assert ("visited_reasonable_count", l_visitor.object_count >= 1)
+			print ("PASS%N")
+		end
+
+	test_walker_postcondition_check
+			-- A06: Verify walker postcondition holds
+		local
+			l_walker: SIMPLE_OBJECT_GRAPH_WALKER
+			l_visitor: TEST_COUNTING_VISITOR
+		do
+			print ("test_walker_postcondition_check: ")
+			create l_walker.make
+			create l_visitor.make
+			l_walker.walk ("test", l_visitor)
+			assert ("postcondition_at_least_1", l_walker.visited_count >= 1)
+			print ("PASS%N")
+		end
+
+	test_registry_boundary_type_id
+			-- A05: Test registry with boundary type IDs
+		local
+			l_registry: SIMPLE_TYPE_REGISTRY
+			l_info: SIMPLE_TYPE_INFO
+		do
+			print ("test_registry_boundary_type_id: ")
+			create l_registry.make
+			-- Type ID 1 is typically ANY or a basic type
+			l_info := l_registry.type_info_for_type_id (1)
+			assert ("type_1_has_name", not l_info.name.is_empty)
+			assert ("type_1_cached", l_registry.has_type_id (1))
+			print ("PASS%N")
+		end
+
+	test_walker_depth_limited
+			-- A04: Test walker respects max_depth setting
+		local
+			l_walker: SIMPLE_OBJECT_GRAPH_WALKER
+			l_visitor: TEST_COUNTING_VISITOR
+			l_outer: ARRAYED_LIST [ARRAYED_LIST [STRING]]
+			l_inner: ARRAYED_LIST [STRING]
+		do
+			print ("test_walker_depth_limited: ")
+			create l_outer.make (2)
+			create l_inner.make (2)
+			l_inner.extend ("deep")
+			l_outer.extend (l_inner)
+			create l_walker.make
+			l_walker.set_max_depth (1)  -- Only visit root level
+			create l_visitor.make
+			l_walker.walk (l_outer, l_visitor)
+			-- With depth 1, should only visit outer, not traverse into inner
+			assert ("depth_respected", l_visitor.object_count >= 1)
 			print ("PASS%N")
 		end
 

@@ -31,6 +31,8 @@ feature -- Walking
 		do
 			visited.wipe_out
 			walk_object (a_root, a_visitor, 0)
+		ensure
+			at_least_root_visited: visited_count >= 1
 		end
 
 feature -- Configuration

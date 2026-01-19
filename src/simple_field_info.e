@@ -110,6 +110,11 @@ feature -- Value Access
 			else
 				l_internal.set_reference_field (index, a_object, a_value)
 			end
+		ensure
+			value_set_or_type_mismatch: value (a_object) = a_value or else
+				(attached {READABLE_STRING_GENERAL} a_value as l_str and then
+				 attached {READABLE_STRING_GENERAL} value (a_object) as l_result and then
+				 l_result.same_string (l_str))
 		end
 
 invariant
