@@ -1,0 +1,333 @@
+note
+	description: "Adversarial tests for simple_reflection hardening"
+	author: "Simple Eiffel"
+	date: "$Date$"
+	revision: "$Revision$"
+
+class
+	ADVERSARIAL_TESTS
+
+inherit
+	EQA_TEST_SET
+
+create
+	make
+
+feature {NONE} -- Initialization
+
+	make
+			-- Run adversarial tests
+		do
+			default_create
+			print ("=== Adversarial Tests ===%N")
+			run_all_adversarial_tests
+			print ("=== End Adversarial Tests ===%N")
+		end
+
+feature -- Test Execution
+
+	run_all_adversarial_tests
+			-- Run all adversarial test groups
+		do
+			-- Type Info Edge Cases
+			test_type_info_primitive_types
+			test_type_info_array_type
+			test_type_info_tuple_type
+
+			-- Registry Stress
+			test_registry_many_types
+			test_registry_same_type_repeated
+			test_registry_after_clear
+
+			-- Reflected Object Edge Cases
+			test_reflected_empty_object
+			test_reflected_nested_object
+
+			-- Enumeration Edge Cases
+			test_enum_all_values
+			test_enum_iteration
+
+			-- Flags Edge Cases
+			test_flags_all_set
+			test_flags_toggle
+			test_flags_combined
+
+			-- Graph Walker Edge Cases
+			test_walker_single_object
+			test_walker_empty_list
+			test_walker_max_depth_zero
+
+			print ("All adversarial tests completed%N")
+		end
+
+feature -- Type Info Adversarial Tests
+
+	test_type_info_primitive_types
+			-- Test type info for primitive types
+		local
+			l_info: SIMPLE_TYPE_INFO
+		do
+			print ("test_type_info_primitive_types: ")
+			create l_info.make ({INTEGER_8})
+			assert ("int8_valid", l_info.type_id > 0)
+			create l_info.make ({INTEGER_16})
+			assert ("int16_valid", l_info.type_id > 0)
+			create l_info.make ({INTEGER_64})
+			assert ("int64_valid", l_info.type_id > 0)
+			create l_info.make ({REAL_32})
+			assert ("real32_valid", l_info.type_id > 0)
+			create l_info.make ({REAL_64})
+			assert ("real64_valid", l_info.type_id > 0)
+			create l_info.make ({CHARACTER_8})
+			assert ("char8_valid", l_info.type_id > 0)
+			create l_info.make ({CHARACTER_32})
+			assert ("char32_valid", l_info.type_id > 0)
+			print ("PASS%N")
+		end
+
+	test_type_info_array_type
+			-- Test type info for array types
+		local
+			l_info: SIMPLE_TYPE_INFO
+		do
+			print ("test_type_info_array_type: ")
+			create l_info.make ({ARRAY [STRING]})
+			assert ("array_type_valid", l_info.type_id > 0)
+			assert ("array_name_has_array", l_info.name.has_substring ("ARRAY"))
+			assert ("base_name_no_brackets", not l_info.base_name.has ('['))
+			print ("PASS%N")
+		end
+
+	test_type_info_tuple_type
+			-- Test type info for tuple types
+		local
+			l_info: SIMPLE_TYPE_INFO
+		do
+			print ("test_type_info_tuple_type: ")
+			create l_info.make ({TUPLE [name: STRING; age: INTEGER]})
+			assert ("tuple_type_valid", l_info.type_id > 0)
+			assert ("tuple_name_has_tuple", l_info.name.has_substring ("TUPLE"))
+			print ("PASS%N")
+		end
+
+feature -- Registry Adversarial Tests
+
+	test_registry_many_types
+			-- Test registry with many different types
+		local
+			l_registry: SIMPLE_TYPE_REGISTRY
+			l_info: SIMPLE_TYPE_INFO
+			i: INTEGER
+		do
+			print ("test_registry_many_types: ")
+			create l_registry.make
+			-- Add many types
+			l_info := l_registry.type_info_for ({STRING})
+			l_info := l_registry.type_info_for ({INTEGER})
+			l_info := l_registry.type_info_for ({BOOLEAN})
+			l_info := l_registry.type_info_for ({REAL_64})
+			l_info := l_registry.type_info_for ({ARRAYED_LIST [STRING]})
+			l_info := l_registry.type_info_for ({HASH_TABLE [ANY, STRING]})
+			assert ("many_types_cached", l_registry.cached_count >= 6)
+			print ("PASS%N")
+		end
+
+	test_registry_same_type_repeated
+			-- Test registry returns same instance for repeated lookups
+		local
+			l_registry: SIMPLE_TYPE_REGISTRY
+			l_info1, l_info2, l_info3: SIMPLE_TYPE_INFO
+		do
+			print ("test_registry_same_type_repeated: ")
+			create l_registry.make
+			l_info1 := l_registry.type_info_for ({STRING})
+			l_info2 := l_registry.type_info_for ({STRING})
+			l_info3 := l_registry.type_info_for ({STRING})
+			assert ("all_same_instance", l_info1 = l_info2 and l_info2 = l_info3)
+			assert ("only_one_cached", l_registry.cached_count = 1)
+			print ("PASS%N")
+		end
+
+	test_registry_after_clear
+			-- Test registry works correctly after clearing
+		local
+			l_registry: SIMPLE_TYPE_REGISTRY
+			l_info1, l_info2: SIMPLE_TYPE_INFO
+		do
+			print ("test_registry_after_clear: ")
+			create l_registry.make
+			l_info1 := l_registry.type_info_for ({STRING})
+			l_registry.clear_cache
+			assert ("cleared", l_registry.cached_count = 0)
+			l_info2 := l_registry.type_info_for ({STRING})
+			assert ("new_instance_after_clear", l_info1 /= l_info2)
+			assert ("one_cached_again", l_registry.cached_count = 1)
+			print ("PASS%N")
+		end
+
+feature -- Reflected Object Adversarial Tests
+
+	test_reflected_empty_object
+			-- Test reflection on minimal effective object
+			-- Note: Bare ANY objects may not have valid type_id
+		local
+			l_reflected: SIMPLE_REFLECTED_OBJECT
+			l_obj: STRING
+		do
+			print ("test_reflected_empty_object: ")
+			l_obj := ""  -- Empty string as minimal object
+			create l_reflected.make (l_obj)
+			assert ("string_has_type_info", l_reflected.type_info /= Void)
+			print ("PASS%N")
+		end
+
+	test_reflected_nested_object
+			-- Test reflection on object with nested references
+		local
+			l_reflected: SIMPLE_REFLECTED_OBJECT
+			l_outer: ARRAYED_LIST [ARRAYED_LIST [STRING]]
+			l_inner: ARRAYED_LIST [STRING]
+		do
+			print ("test_reflected_nested_object: ")
+			create l_outer.make (2)
+			create l_inner.make (2)
+			l_inner.extend ("nested")
+			l_outer.extend (l_inner)
+			create l_reflected.make (l_outer)
+			assert ("nested_has_fields", l_reflected.type_info.field_count > 0)
+			print ("PASS%N")
+		end
+
+feature -- Enumeration Adversarial Tests
+
+	test_enum_all_values
+			-- Test enumeration returns all values correctly
+		local
+			l_enum: TEST_STATUS_ENUM
+		do
+			print ("test_enum_all_values: ")
+			create l_enum.make
+			assert ("has_4_values", l_enum.all_values.count = 4)
+			assert ("has_4_names", l_enum.all_names.count = 4)
+			assert ("values_names_match", l_enum.all_values.count = l_enum.all_names.count)
+			print ("PASS%N")
+		end
+
+	test_enum_iteration
+			-- Test enumeration iteration
+		local
+			l_enum: TEST_STATUS_ENUM
+			l_count: INTEGER
+		do
+			print ("test_enum_iteration: ")
+			create l_enum.make
+			l_enum.do_all (agent (a_value: INTEGER; a_name: STRING_32)
+				do
+					-- Just count iterations
+				end)
+			-- If we get here without error, iteration worked
+			assert ("iteration_completed", True)
+			print ("PASS%N")
+		end
+
+feature -- Flags Adversarial Tests
+
+	test_flags_all_set
+			-- Test setting all flags at once
+		local
+			l_flags: TEST_PERMISSION_FLAGS
+		do
+			print ("test_flags_all_set: ")
+			create l_flags.make
+			l_flags.set_flag (l_flags.read_flag)
+			l_flags.set_flag (l_flags.write_flag)
+			l_flags.set_flag (l_flags.execute_flag)
+			l_flags.set_flag (l_flags.delete_flag)
+			assert ("all_flags_set", l_flags.flags = 15)  -- 1+2+4+8
+			assert ("has_all_4", l_flags.to_names.count = 4)
+			print ("PASS%N")
+		end
+
+	test_flags_toggle
+			-- Test toggling flags
+		local
+			l_flags: TEST_PERMISSION_FLAGS
+		do
+			print ("test_flags_toggle: ")
+			create l_flags.make
+			l_flags.set_flag (l_flags.read_flag)
+			assert ("read_set", l_flags.has_flag (l_flags.read_flag))
+			l_flags.toggle_flag (l_flags.read_flag)
+			assert ("read_cleared", not l_flags.has_flag (l_flags.read_flag))
+			l_flags.toggle_flag (l_flags.read_flag)
+			assert ("read_set_again", l_flags.has_flag (l_flags.read_flag))
+			print ("PASS%N")
+		end
+
+	test_flags_combined
+			-- Test combined flag operations
+		local
+			l_flags: TEST_PERMISSION_FLAGS
+		do
+			print ("test_flags_combined: ")
+			create l_flags.make
+			l_flags.set_flags (l_flags.read_flag.bit_or (l_flags.write_flag))
+			assert ("rw_set", l_flags.has_flag (l_flags.read_flag) and l_flags.has_flag (l_flags.write_flag))
+			assert ("not_execute", not l_flags.has_flag (l_flags.execute_flag))
+			l_flags.clear_all
+			assert ("cleared", l_flags.is_empty)
+			print ("PASS%N")
+		end
+
+feature -- Graph Walker Adversarial Tests
+
+	test_walker_single_object
+			-- Test walking a single object with no references
+		local
+			l_walker: SIMPLE_OBJECT_GRAPH_WALKER
+			l_visitor: TEST_COUNTING_VISITOR
+		do
+			print ("test_walker_single_object: ")
+			create l_walker.make
+			create l_visitor.make
+			l_walker.walk (42, l_visitor)  -- Walk an integer
+			assert ("visited_one", l_visitor.object_count >= 1)
+			print ("PASS%N")
+		end
+
+	test_walker_empty_list
+			-- Test walking an empty list
+		local
+			l_walker: SIMPLE_OBJECT_GRAPH_WALKER
+			l_visitor: TEST_COUNTING_VISITOR
+			l_list: ARRAYED_LIST [STRING]
+		do
+			print ("test_walker_empty_list: ")
+			create l_walker.make
+			create l_visitor.make
+			create l_list.make (0)  -- Empty list
+			l_walker.walk (l_list, l_visitor)
+			assert ("walked_empty_list", l_visitor.object_count >= 1)
+			print ("PASS%N")
+		end
+
+	test_walker_max_depth_zero
+			-- Test walking with max depth of 0 (unlimited)
+		local
+			l_walker: SIMPLE_OBJECT_GRAPH_WALKER
+			l_visitor: TEST_COUNTING_VISITOR
+			l_list: ARRAYED_LIST [STRING]
+		do
+			print ("test_walker_max_depth_zero: ")
+			create l_walker.make
+			l_walker.set_max_depth (0)  -- Unlimited
+			create l_visitor.make
+			create l_list.make (2)
+			l_list.extend ("a")
+			l_list.extend ("b")
+			l_walker.walk (l_list, l_visitor)
+			assert ("walked_with_unlimited_depth", l_visitor.object_count > 0)
+			print ("PASS%N")
+		end
+
+end

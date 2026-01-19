@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>simple_reflection - Eiffel Reflection Library</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #7b68ee;
+            --border: #333;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        header { text-align: center; padding: 3rem 0; }
+        h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .subtitle { color: #888; font-size: 1.1rem; }
+        .badges { margin: 1.5rem 0; }
+        .badges img { margin: 0 0.25rem; }
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border: 1px solid var(--border);
+        }
+        .card h2 { color: var(--accent); margin-bottom: 1rem; font-size: 1.3rem; }
+        pre {
+            background: #0d1117;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+        code { font-family: 'Monaco', 'Menlo', monospace; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+        th { color: var(--accent); }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .nav { display: flex; gap: 2rem; justify-content: center; margin: 1rem 0; }
+        footer { text-align: center; padding: 2rem 0; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>simple_reflection</h1>
+            <p class="subtitle">Runtime Reflection Library for Eiffel</p>
+            <div class="badges">
+                <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License">
+                <img src="https://img.shields.io/badge/Eiffel-25.02-purple.svg" alt="Eiffel 25.02">
+                <img src="https://img.shields.io/badge/Tests-36%20passing-green.svg" alt="36 Tests">
+            </div>
+            <nav class="nav">
+                <a href="https://github.com/simple-eiffel/simple_reflection">GitHub</a>
+                <a href="https://github.com/simple-eiffel">Simple Eiffel</a>
+            </nav>
+        </header>
+
+        <div class="card">
+            <h2>Overview</h2>
+            <p>SIMPLE_REFLECTION provides runtime type introspection for Eiffel applications:</p>
+            <ul style="margin: 1rem 0 0 1.5rem;">
+                <li><strong>Type introspection</strong> - Query type metadata at runtime</li>
+                <li><strong>Field access</strong> - Read/write object fields by name</li>
+                <li><strong>Enumeration support</strong> - Type-safe enumerations with iteration</li>
+                <li><strong>Object graph</strong> - Walk object references with visitor pattern</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>Quick Start</h2>
+<pre><code>local
+    registry: SIMPLE_TYPE_REGISTRY
+    info: SIMPLE_TYPE_INFO
+do
+    create registry.make
+
+    -- Get type info (cached)
+    info := registry.type_info_for ({ARRAYED_LIST [STRING]})
+
+    -- Query metadata
+    print (info.name)        -- "ARRAYED_LIST [STRING]"
+    print (info.field_count) -- number of fields
+end</code></pre>
+        </div>
+
+        <div class="card">
+            <h2>Classes</h2>
+            <table>
+                <tr><th>Class</th><th>Purpose</th></tr>
+                <tr><td>SIMPLE_TYPE_INFO</td><td>Type metadata container</td></tr>
+                <tr><td>SIMPLE_TYPE_REGISTRY</td><td>Global type info cache</td></tr>
+                <tr><td>SIMPLE_FIELD_INFO</td><td>Field metadata and access</td></tr>
+                <tr><td>SIMPLE_FEATURE_INFO</td><td>Feature metadata</td></tr>
+                <tr><td>SIMPLE_REFLECTED_OBJECT</td><td>Reflective object wrapper</td></tr>
+                <tr><td>SIMPLE_ENUMERATION</td><td>Type-safe enumeration base</td></tr>
+                <tr><td>SIMPLE_FLAGS</td><td>Bit flag enumeration base</td></tr>
+                <tr><td>SIMPLE_OBJECT_VISITOR</td><td>Graph walker callback interface</td></tr>
+                <tr><td>SIMPLE_OBJECT_GRAPH_WALKER</td><td>Object graph traversal</td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Installation</h2>
+<pre><code>&lt;library name="simple_reflection"
+         location="$SIMPLE_EIFFEL/simple_reflection/simple_reflection.ecf"/&gt;</code></pre>
+        </div>
+
+        <div class="card">
+            <h2>Reflected Object Access</h2>
+<pre><code>local
+    reflected: SIMPLE_REFLECTED_OBJECT
+do
+    create reflected.make (my_object)
+
+    -- Access field by name
+    if attached reflected.field_value ("email") as l_email then
+        print (l_email.out)
+    end
+
+    -- Iterate all fields
+    reflected.do_all_fields (agent (f: SIMPLE_FIELD_INFO; v: detachable ANY)
+        do
+            print (f.name + ": " + v.out)
+        end)
+end</code></pre>
+        </div>
+
+        <footer>
+            <p>Part of the <a href="https://github.com/simple-eiffel">Simple Eiffel</a> ecosystem</p>
+            <p>MIT License</p>
+        </footer>
+    </div>
+</body>
+</html>
