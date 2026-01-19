@@ -3,143 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>simple_reflection - Eiffel Reflection Library</title>
-    <style>
-        :root {
-            --bg-color: #1a1a2e;
-            --card-bg: #16213e;
-            --text-color: #eee;
-            --accent: #7b68ee;
-            --border: #333;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.6;
-        }
-        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
-        header { text-align: center; padding: 3rem 0; }
-        h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-        .subtitle { color: #888; font-size: 1.1rem; }
-        .badges { margin: 1.5rem 0; }
-        .badges img { margin: 0 0.25rem; }
-        .card {
-            background: var(--card-bg);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin: 1rem 0;
-            border: 1px solid var(--border);
-        }
-        .card h2 { color: var(--accent); margin-bottom: 1rem; font-size: 1.3rem; }
-        pre {
-            background: #0d1117;
-            padding: 1rem;
-            border-radius: 6px;
-            overflow-x: auto;
-            font-size: 0.9rem;
-        }
-        code { font-family: 'Monaco', 'Menlo', monospace; }
-        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
-        th { color: var(--accent); }
-        a { color: var(--accent); text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        .nav { display: flex; gap: 2rem; justify-content: center; margin: 1rem 0; }
-        footer { text-align: center; padding: 2rem 0; color: #666; }
-    </style>
+    <title>simple_reflection - Simple Eiffel Library</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
+    <header>
+        <div class="container">
+            <img src="images/logo.png" alt="simple_reflection" class="logo">
             <h1>simple_reflection</h1>
-            <p class="subtitle">Runtime Reflection Library for Eiffel</p>
+            <p class="tagline">Runtime reflection and type introspection for Eiffel</p>
             <div class="badges">
                 <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License">
                 <img src="https://img.shields.io/badge/Eiffel-25.02-purple.svg" alt="Eiffel 25.02">
-                <img src="https://img.shields.io/badge/Tests-36%20passing-green.svg" alt="36 Tests">
+                <img src="https://img.shields.io/badge/DBC-Contracts-green.svg" alt="Design by Contract">
             </div>
-            <nav class="nav">
-                <a href="https://github.com/simple-eiffel/simple_reflection">GitHub</a>
-                <a href="https://github.com/simple-eiffel">Simple Eiffel</a>
-            </nav>
-        </header>
-
-        <div class="card">
-            <h2>Overview</h2>
-            <p>SIMPLE_REFLECTION provides runtime type introspection for Eiffel applications:</p>
-            <ul style="margin: 1rem 0 0 1.5rem;">
-                <li><strong>Type introspection</strong> - Query type metadata at runtime</li>
-                <li><strong>Field access</strong> - Read/write object fields by name</li>
-                <li><strong>Enumeration support</strong> - Type-safe enumerations with iteration</li>
-                <li><strong>Object graph</strong> - Walk object references with visitor pattern</li>
-            </ul>
         </div>
+    </header>
 
-        <div class="card">
-            <h2>Quick Start</h2>
-<pre><code>local
+    <nav>
+        <div class="container">
+            <a href="#overview">Overview</a>
+            <a href="#quick-start">Quick Start</a>
+            <a href="#features">Features</a>
+            <a href="#api-reference">API Reference</a>
+            <a href="https://github.com/simple-eiffel/simple_reflection">GitHub</a>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            <section id="overview">
+                <h2>Overview</h2>
+                <p>SIMPLE_REFLECTION provides runtime introspection capabilities for Eiffel applications, enabling inspection and manipulation of objects at runtime through a clean, contract-based API.</p>
+                <p>The library wraps Eiffel's INTERNAL class with a higher-level abstraction, providing type-safe access to object fields, type metadata caching for performance, and support for type-safe enumerations and flags.</p>
+                <p>Key use cases include serialization libraries, debugging tools, ORM implementations, and any scenario requiring dynamic object inspection without compile-time type knowledge.</p>
+            </section>
+
+            <section id="quick-start">
+                <h2>Quick Start</h2>
+                <pre><code class="language-eiffel">local
     registry: SIMPLE_TYPE_REGISTRY
     info: SIMPLE_TYPE_INFO
-do
-    create registry.make
-
-    -- Get type info (cached)
-    info := registry.type_info_for ({ARRAYED_LIST [STRING]})
-
-    -- Query metadata
-    print (info.name)        -- "ARRAYED_LIST [STRING]"
-    print (info.field_count) -- number of fields
-end</code></pre>
-        </div>
-
-        <div class="card">
-            <h2>Classes</h2>
-            <table>
-                <tr><th>Class</th><th>Purpose</th></tr>
-                <tr><td>SIMPLE_TYPE_INFO</td><td>Type metadata container</td></tr>
-                <tr><td>SIMPLE_TYPE_REGISTRY</td><td>Global type info cache</td></tr>
-                <tr><td>SIMPLE_FIELD_INFO</td><td>Field metadata and access</td></tr>
-                <tr><td>SIMPLE_FEATURE_INFO</td><td>Feature metadata</td></tr>
-                <tr><td>SIMPLE_REFLECTED_OBJECT</td><td>Reflective object wrapper</td></tr>
-                <tr><td>SIMPLE_ENUMERATION</td><td>Type-safe enumeration base</td></tr>
-                <tr><td>SIMPLE_FLAGS</td><td>Bit flag enumeration base</td></tr>
-                <tr><td>SIMPLE_OBJECT_VISITOR</td><td>Graph walker callback interface</td></tr>
-                <tr><td>SIMPLE_OBJECT_GRAPH_WALKER</td><td>Object graph traversal</td></tr>
-            </table>
-        </div>
-
-        <div class="card">
-            <h2>Installation</h2>
-<pre><code>&lt;library name="simple_reflection"
-         location="$SIMPLE_EIFFEL/simple_reflection/simple_reflection.ecf"/&gt;</code></pre>
-        </div>
-
-        <div class="card">
-            <h2>Reflected Object Access</h2>
-<pre><code>local
     reflected: SIMPLE_REFLECTED_OBJECT
+    customer: CUSTOMER
 do
-    create reflected.make (my_object)
+    -- Type introspection with caching
+    create registry.make
+    info := registry.type_info_for ({CUSTOMER})
+    print (info.name + ": " + info.field_count.out + " fields%N")
 
-    -- Access field by name
+    -- Reflective field access
+    create customer.make ("John", "john@example.com")
+    create reflected.make (customer)
     if attached reflected.field_value ("email") as l_email then
-        print (l_email.out)
+        print ("Email: " + l_email.out + "%N")
     end
-
-    -- Iterate all fields
-    reflected.do_all_fields (agent (f: SIMPLE_FIELD_INFO; v: detachable ANY)
-        do
-            print (f.name + ": " + v.out)
-        end)
 end</code></pre>
-        </div>
+            </section>
 
-        <footer>
-            <p>Part of the <a href="https://github.com/simple-eiffel">Simple Eiffel</a> ecosystem</p>
-            <p>MIT License</p>
-        </footer>
-    </div>
+            <section id="features">
+                <h2>Features</h2>
+                <ul>
+                    <li>Type metadata introspection</li>
+                    <li>Field read/write by name</li>
+                    <li>Type info caching for performance</li>
+                    <li>Type-safe enumerations</li>
+                    <li>Bit flag support</li>
+                    <li>Object graph traversal</li>
+                    <li>Design by Contract throughout</li>
+                    <li>Void-safe implementation</li>
+                    <li>SCOOP-compatible</li>
+                </ul>
+            </section>
+
+            <section id="api-reference">
+                <h2>API Reference</h2>
+
+                <h3>SIMPLE_TYPE_REGISTRY</h3>
+                <p>Global cache for type metadata. Use this as the entry point for type introspection.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>make</code></td>
+                            <td>Create empty registry</td>
+                        </tr>
+                        <tr>
+                            <td><code>type_info_for (a_type_id: INTEGER)</code></td>
+                            <td>Get cached type info for type ID</td>
+                        </tr>
+                        <tr>
+                            <td><code>has_type (a_type_id: INTEGER)</code></td>
+                            <td>Check if type is cached</td>
+                        </tr>
+                        <tr>
+                            <td><code>clear_cache</code></td>
+                            <td>Clear all cached type info</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>SIMPLE_TYPE_INFO</h3>
+                <p>Container for type metadata including name, fields, and features.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>make_from_type_id (a_type_id: INTEGER)</code></td>
+                            <td>Create from runtime type ID</td>
+                        </tr>
+                        <tr>
+                            <td><code>name</code></td>
+                            <td>Full type name with generics</td>
+                        </tr>
+                        <tr>
+                            <td><code>base_name</code></td>
+                            <td>Type name without generics</td>
+                        </tr>
+                        <tr>
+                            <td><code>fields</code></td>
+                            <td>List of field metadata</td>
+                        </tr>
+                        <tr>
+                            <td><code>has_field (a_name)</code></td>
+                            <td>Check field exists</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>SIMPLE_REFLECTED_OBJECT</h3>
+                <p>Wraps any object for reflective access to its fields.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>make (a_object: ANY)</code></td>
+                            <td>Wrap object for reflection</td>
+                        </tr>
+                        <tr>
+                            <td><code>type_info</code></td>
+                            <td>Get type metadata</td>
+                        </tr>
+                        <tr>
+                            <td><code>field_value (a_name)</code></td>
+                            <td>Read field value by name</td>
+                        </tr>
+                        <tr>
+                            <td><code>set_field_value (a_name, a_value)</code></td>
+                            <td>Write field value by name</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>SIMPLE_ENUMERATION</h3>
+                <p>Base class for type-safe enumerations with name/value mapping.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>value</code></td>
+                            <td>Current enumeration value</td>
+                        </tr>
+                        <tr>
+                            <td><code>set_value (a_value: INTEGER)</code></td>
+                            <td>Set from integer</td>
+                        </tr>
+                        <tr>
+                            <td><code>set_from_name (a_name)</code></td>
+                            <td>Set from string name</td>
+                        </tr>
+                        <tr>
+                            <td><code>name</code></td>
+                            <td>Name of current value</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>SIMPLE_OBJECT_GRAPH_WALKER</h3>
+                <p>Traverses object references using visitor pattern.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>make</code></td>
+                            <td>Create walker</td>
+                        </tr>
+                        <tr>
+                            <td><code>walk (a_root, a_visitor)</code></td>
+                            <td>Traverse from root object</td>
+                        </tr>
+                        <tr>
+                            <td><code>set_max_depth (a_depth)</code></td>
+                            <td>Limit traversal depth</td>
+                        </tr>
+                        <tr>
+                            <td><code>visited_count</code></td>
+                            <td>Objects visited in last walk</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="installation">
+                <h2>Installation</h2>
+                <p>Add to your ECF file:</p>
+                <pre><code class="language-xml">&lt;library name="simple_reflection" location="$SIMPLE_LIBS/simple_reflection/simple_reflection.ecf"/&gt;</code></pre>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Simple Eiffel. <a href="https://github.com/simple-eiffel">GitHub</a></p>
+        </div>
+    </footer>
 </body>
 </html>
