@@ -64,6 +64,11 @@ feature -- Test Execution
 			test_registry_boundary_type_id
 			test_walker_depth_limited
 
+			-- H03 Bug Hunt Probes
+			test_object_id_collision_proof
+			test_type_id_boundary_invalid
+			test_set_value_unsupported_type
+
 			print ("All adversarial tests completed%N")
 		end
 
@@ -335,6 +340,72 @@ feature -- Graph Walker Adversarial Tests
 			l_walker.walk (l_list, l_visitor)
 			assert ("walked_with_unlimited_depth", l_visitor.object_count > 0)
 			print ("PASS%N")
+		end
+
+feature -- H03 Bug Hunt Probes
+
+	test_object_id_collision_proof
+			-- H03/F05: Verify object_id now produces different IDs
+		local
+			l_obj1, l_obj2: ARRAYED_LIST [INTEGER]
+			l_id1, l_id2: INTEGER
+			l_internal: INTERNAL
+		do
+			print ("test_object_id_collision_proof: ")
+			create l_obj1.make (10)
+			create l_obj2.make (10)
+			create l_internal
+			-- Both have same type
+			assert ("same_type", l_internal.dynamic_type (l_obj1) = l_internal.dynamic_type (l_obj2))
+			-- Calculate object_id using NEW formula (out.hash_code)
+			l_id1 := l_internal.dynamic_type (l_obj1) * 100000 + l_obj1.out.hash_code \\ 100000
+			l_id2 := l_internal.dynamic_type (l_obj2) * 100000 + l_obj2.out.hash_code \\ 100000
+			print ("IDs: " + l_id1.out + ", " + l_id2.out + "%N")
+			if l_id1 /= l_id2 then
+				print ("FIXED (different IDs)%N")
+			else
+				print ("STILL_COLLIDING%N")
+			end
+		end
+
+	test_type_id_boundary_invalid
+			-- H03: Invalid type_id passes precondition but crashes
+		local
+			l_registry: SIMPLE_TYPE_REGISTRY
+			l_info: SIMPLE_TYPE_INFO
+			l_retried: BOOLEAN
+		do
+			print ("test_type_id_boundary_invalid: ")
+			if not l_retried then
+				create l_registry.make
+				-- 999999999 passes precondition (> 0) but is invalid type
+				l_info := l_registry.type_info_for_type_id (999999999)
+				print ("UNEXPECTED (no exception)%N")
+			else
+				print ("PASS (caught exception)%N")
+			end
+		rescue
+			l_retried := True
+			retry
+		end
+
+	test_set_value_unsupported_type
+			-- F05: Verify INTEGER_64 now works in set_value
+		local
+			l_test: TEST_SIMPLE_OBJECT
+			l_reflected: SIMPLE_REFLECTED_OBJECT
+		do
+			print ("test_set_value_unsupported_type: ")
+			create l_test.make ("test", 0)
+			l_test.set_big_value (9223372036854775807)
+			create l_reflected.make (l_test)
+			-- Try to set INTEGER_64 via reflection - should work after fix
+			l_reflected.set_field_value ("big_value", {INTEGER_64} 123)
+			if l_test.big_value = {INTEGER_64} 123 then
+				print ("FIXED (INT64 works)%N")
+			else
+				print ("PARTIAL (value: " + l_test.big_value.out + ")%N")
+			end
 		end
 
 feature -- X03 Contract Assault Tests

@@ -8,3 +8,4 @@ EIFGENs/
 # OS files
 Thumbs.db
 .DS_Store
+exception_trace.log

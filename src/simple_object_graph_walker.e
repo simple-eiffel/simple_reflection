@@ -100,11 +100,18 @@ feature {NONE} -- Implementation
 
 	object_id (a_object: ANY): INTEGER
 			-- Unique ID for `a_object`.
+			-- FIX for BUG-001: Previous algorithm used class name hash (generator)
+			-- which was identical for all objects of same type.
+			-- Now uses `out` string hash which varies per instance state.
+			-- NOTE: This is still not true object identity - objects with
+			-- identical state may still collide. For true identity, use
+			-- IDENTIFIED inheritance pattern in Phase 2.
 		local
 			l_internal: INTERNAL
 		do
 			create l_internal
-			Result := l_internal.dynamic_type (a_object) * 1000000 + a_object.generator.hash_code \\ 1000000
+			-- out.hash_code varies per object instance/state
+			Result := l_internal.dynamic_type (a_object) * 100000 + (a_object.out.hash_code \\ 100000)
 		end
 
 invariant
