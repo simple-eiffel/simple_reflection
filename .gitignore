@@ -9,3 +9,6 @@ EIFGENs/
 Thumbs.db
 .DS_Store
 exception_trace.log
+*.melted
+*.epr
+*.log
